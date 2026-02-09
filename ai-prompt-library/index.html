@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Prompt模板库</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0a0a0f,#1a1a2e);min-height:100vh;color:#e8e8e8}
+        .container{max-width:1200px;margin:0 auto;padding:20px}
+        .header{text-align:center;padding:50px 20px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(0,200,255,0.3)}
+        .header h1{font-size:42px;background:linear-gradient(90deg,#00ccff,#00ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:15px}
+        .header p{color:#888;font-size:16px}
+        .search-box{max-width:600px;margin:30px auto}
+        .search-input{width:100%;padding:15px 25px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);border-radius:30px;color:#fff;font-size:16px}
+        .search-input:focus{outline:none;border-color:#00ccff}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;padding:30px 0}
+        .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:25px;transition:all 0.3s;cursor:pointer}
+        .card:hover{transform:translateY(-5px);border-color:#00ccff}
+        .card-icon{font-size:36px;margin-bottom:15px}
+        .card-title{font-size:18px;font-weight:600;color:#fff;margin-bottom:10px}
+        .card-desc{font-size:13px;color:#888;line-height:1.6;margin-bottom:15px}
+        .tags{display:flex;flex-wrap:wrap;gap:8px}
+        .tag{padding:4px 12px;background:rgba(0,200,255,0.2);color:#00ccff;border-radius:15px;font-size:11px}
+        .preview{background:rgba(0,0,0,0.3);border-radius:8px;padding:15px;margin-top:15px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#888;max-height:150px;overflow:hidden}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+        .modal.active{display:flex}
+        .modal-content{background:#1a1a2e;border:1px solid rgba(0,200,255,0.3);border-radius:16px;max-width:800px;width:100%;max-height:80vh;overflow-y:auto}
+        .modal-header{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center}
+        .modal-title{font-size:20px;font-weight:600;color:#00ccff}
+        .modal-close{background:none;border:none;color:#888;font-size:24px;cursor:pointer}
+        .modal-body{padding:20px}
+        .prompt-content{background:rgba(0,0,0,0.3);border-radius:8px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:#ccc;white-space:pre-wrap}
+        .btn{padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all 0.3s}
+        .btn-primary{background:linear-gradient(135deg,#00ccff,#00ff88);color:#000}
+        .btn-secondary{background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2)}
+        .btn-group{display:flex;gap:10px;margin-top:20px}
+        .section-title{font-size:14px;color:#888;margin:30px 0 15px;text-transform:uppercase;letter-spacing:1px}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        .card:hover .card-icon{animation:float 2s ease-in-out infinite}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Prompt模板库</h1>
+        <p>专业AI Prompt模板集合 - 帮助AI Agent更高效完成任务</p>
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="🔍 搜索模板..." onkeyup="searchTemplates(this.value)">
+        </div>
+    </div>
+    <div class="container">
+        <div class="section-title">💻 代码开发</div>
+        <div class="grid" id="codeGrid"></div>
+        
+        <div class="section-title">📝 内容创作</div>
+        <div class="grid" id="contentGrid"></div>
+        
+        <div class="section-title">📊 数据分析</div>
+        <div class="grid" id="dataGrid"></div>
+        
+        <div class="section-title">🔧 系统设计</div>
+        <div class="grid" id="designGrid"></div>
+    </div>
+    
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle"></span>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="prompt-content" id="modalContent"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="copyPrompt()">📋 复制</button>
+                    <button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const templates = {
+            code: [
+                {icon:'🔍',title:'代码审查',desc:'审查代码安全性、性能和可读性',tags:['安全','性能','代码质量'],preview:'你是一位资深代码审查专家...'},
+                {icon:'🐛',title:'Bug修复',desc:'分析并修复代码中的Bug',tags:['调试','问题定位'],preview:'请分析以下代码的问题...'},
+                {icon:'♻️',title:'代码重构',desc:'优化代码结构和可读性',tags:['重构','优化'],preview:'请对以下代码进行重构...'},
+                {icon:'🧪',title:'单元测试',desc:'编写高质量单元测试',tags:['测试','TDD'],preview:'请为以下代码编写测试...'}
+            ],
+            content: [
+                {icon:'📝',title:'技术博客',desc:'撰写专业技术文章',tags:['博客','技术写作'],preview:'请撰写一篇关于[主题]的技术文章...'},
+                {icon:'🐦',title:'社交媒体',desc:'创作社交媒体内容',tags:['Twitter','营销'],preview:'请创作一条关于[产品]的推文...'},
+                {icon:'📢',title:'营销文案',desc:'撰写营销推广文案',tags:['营销','广告'],preview:'请撰写一段关于[产品]的营销文案...'}
+            ],
+            data: [
+                {icon:'🧹',title:'数据清洗',desc:'清洗和预处理数据',tags:['ETL','数据质量'],preview:'请对以下数据进行清洗...'},
+                {icon:'📈',title:'可视化建议',desc:'生成数据可视化方案',tags:['图表','BI'],preview:'请为以下数据推荐可视化方式...'},
+                {icon:'📋',title:'报告生成',desc:'自动生成数据分析报告',tags:['报表','分析'],preview:'请基于以下数据生成分析报告...'}
+            ],
+            design: [
+                {icon:'🔌',title:'API设计',desc:'设计RESTful API',tags:['API','后端'],preview:'请设计一个[功能]的API...'},
+                {icon:'🗄️',title:'数据库设计',desc:'设计数据库 schema',tags:['数据库','SQL'],preview:'请设计[业务]的数据库...'},
+                {icon:'🏗️',title:'架构评审',desc:'评审系统架构设计',tags:['架构','微服务'],preview:'请评审以下系统架构...'}
+            ]
+        };
+        
+        function renderGrid(data, elementId) {
+            document.getElementById(elementId).innerHTML = data.map((t, i) => `
+                <div class="card" onclick="showTemplate('${elementId}','${i}')">
+                    <div class="card-icon">${t.icon}</div>
+                    <div class="card-title">${t.title}</div>
+                    <div class="card-desc">${t.desc}</div>
+                    <div class="tags">${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+                    <div class="preview">${t.preview}</div>
+                </div>
+            `).join('');
+        }
+        
+        function showTemplate(category, index) {
+            const template = templates[category][index];
+            document.getElementById('modalTitle').textContent = template.icon + ' ' + template.title;
+            document.getElementById('modalContent').textContent = generatePrompt(template);
+            document.getElementById('previewModal').classList.add('active');
+        }
+        
+        function generatePrompt(template) {
+            const prompts = {
+                '代码审查': `## 角色
+你是一位资深代码审查专家
+
+## 任务
+审查以下代码，找出潜在问题：
+
+\`\`\`
+function example() {
+    // 代码...
+}
+\`\`\`
+
+## 审查维度
+1. 安全性
+2. 性能问题
+3. 代码可读性
+4. 最佳实践
+5. 潜在Bug
+
+## 输出格式
+| 文件 | 问题 | 严重程度 | 建议 |
+`,
+                'Bug修复': `## 角色
+你是一位资深调试专家
+
+## 任务
+分析以下代码的问题并修复：
+
+\`\`\`
+// 有问题的代码
+\`\`\`
+
+## 要求
+1. 说明问题原因
+2. 提供修复方案
+3. 解释修复逻辑`,
+                '代码重构': `## 角色
+你是一位代码重构专家
+
+## 任务
+对以下代码进行重构优化：
+
+\`\`\`
+// 待重构代码
+\`\`\`
+
+## 要求
+1. 提升可读性
+2. 改善性能
+3. 遵循SOLID原则`,
+                '单元测试': `## 角色
+你是一位测试专家
+
+## 任务
+为以下代码编写单元测试：
+
+\`\`\`
+// 被测代码
+\`\`\`
+
+## 要求
+1. 使用[测试框架]
+2. 覆盖主要场景
+3. 包含边界测试`,
+                '技术博客': `## 角色
+你是一位资深技术博主
+
+## 任务
+撰写一篇关于【主题】的技术文章
+
+## 要求
+1. 1500-2000字
+2. 包含代码示例
+3. 结构清晰
+4. 适合初学者`,
+                '社交媒体': `## 角色
+你是一位社交媒体运营专家
+
+## 任务
+创作一条关于【产品/话题】的[平台]内容
+
+## 要求
+1. 吸引眼球
+2. 简洁有力
+3. 包含行动号召`,
+                '营销文案': `## 角色
+你是一位营销文案专家
+
+## 任务
+为【产品】撰写一段营销文案
+
+## 目标用户
+[目标人群]
+
+## 要求
+1. 突出卖点
+2. 情感共鸣
+3. 行动号召`,
+                '数据清洗': `## 角色
+你是一位数据工程师
+
+## 任务
+清洗以下数据：
+
+\`\`\`
+// 原始数据
+\`\`\`
+
+## 要求
+1. 处理缺失值
+2. 去除重复
+3. 格式标准化`,
+                '可视化建议': `## 角色
+你是一位数据可视化专家
+
+## 任务
+为以下数据推荐最佳可视化方式：
+
+数据描述：【数据内容】
+
+## 输出
+1. 推荐图表类型
+2. 说明原因
+3. 提供示例代码`,
+                '报告生成': `## 角色
+你是一位数据分析师
+
+## 任务
+基于以下数据生成分析报告：
+
+数据：【数据】
+
+## 要求
+1. 执行摘要
+2. 关键发现
+3. 趋势分析
+4. 建议`,
+                'API设计': `## 角色
+你是一位API架构师
+
+## 任务
+设计【功能】的RESTful API
+
+## 要求
+1. 资源定义
+2. 端点设计
+3. 请求/响应格式
+4. 错误处理`,
+                '数据库设计': `## 角色
+你是一位数据库专家
+
+## 任务
+设计【业务】的数据库schema
+
+## 需求：【业务需求】
+
+## 输出
+1. 表结构
+2. 字段定义
+3. 索引建议`,
+                '架构评审': `## 角色
+你是一位架构评审专家
+
+## 任务
+评审以下系统架构：
+
+架构描述：【架构内容】
+
+## 评审维度
+1. 可扩展性
+2. 安全性
+3. 性能
+4. 可维护性`
+            };
+            return prompts[template.title] || template.preview;
+        }
+        
+        function closeModal() {
+            document.getElementById('previewModal').classList.remove('active');
+        }
+        
+        function copyPrompt() {
+            const content = document.getElementById('modalContent').textContent;
+            navigator.clipboard.writeText(content).then(() => alert('已复制！'));
+        }
+        
+        function searchTemplates(query) {
+            const all = [...templates.code, ...templates.content, ...templates.data, ...templates.design];
+            document.querySelectorAll('.card').forEach((card, i) => {
+                const match = all[i].title.toLowerCase().includes(query.toLowerCase()) ||
+                           all[i].desc.toLowerCase().includes(query.toLowerCase()) ||
+                           all[i].tags.some(t => t.toLowerCase().includes(query.toLowerCase()));
+                card.style.display = match ? 'block' : 'none';
+            });
+        }
+        
+        renderGrid(templates.code, 'codeGrid');
+        renderGrid(templates.content, 'contentGrid');
+        renderGrid(templates.data, 'dataGrid');
+        renderGrid(templates.design, 'designGrid');
+    </script>
+</body>
+</html>
