@@ -1,0 +1,22 @@
+{
+  "name": "ai-game-engine",
+  "version": "1.2.0",
+  "description": "Three.js 游戏引擎 - AI敌人系统 + 物品系统 + 存档系统 + 音效系统 + 粒子系统",
+  "main": "src/GameEngine.js",
+  "scripts": {
+    "start": "node examples/ai-enemy-demo/game.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "three.js",
+    "game-engine",
+    "ai",
+    "enemy",
+    "state-machine",
+    "audio",
+    "sound"
+  ],
+  "author": "AI Game Engine",
+  "license": "MIT",
+  "dependencies": {}
+}
